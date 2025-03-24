@@ -48,7 +48,7 @@ async function updateTimeOnServer(app, seconds) {
       userEmail
     });
 
-    const response = await fetch('https://bow-spring-puma.glitch.me/api/track-time', {
+    const response = await fetch('https://mewing-bevel-battery.glitch.me/api/track-time', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
