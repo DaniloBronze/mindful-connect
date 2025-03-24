@@ -34,8 +34,16 @@ admin.initializeApp({
 // Obtém uma referência para o Firestore
 const db = admin.firestore();
 
-// Configuração do CORS - Permite todas as origens durante desenvolvimento
-app.use(cors());
+// Configuração do CORS para permitir requisições da extensão
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// Adiciona um handler específico para OPTIONS
+app.options('*', cors());
 
 // Middleware para processar JSON
 app.use(express.json());
@@ -48,9 +56,6 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// Rota OPTIONS para preflight CORS
-app.options('*', cors());
 
 // Middleware para verificar o token de autenticação
 async function verifyToken(req, res, next) {
