@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Mindful Connect Tracker",
+  "version": "1.0",
+  "description": "Rastreia o tempo gasto em redes sociais para o Mindful Connect",
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*.instagram.com/*",
+    "*://*.facebook.com/*",
+    "*://*.twitter.com/*",
+    "*://*.tiktok.com/*",
+    "*://*.whatsapp.com/*",
+    "*://*.youtube.com/*",
+    "*://*.linkedin.com/*",
+    "https://mindfull-993d8.web.app/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
