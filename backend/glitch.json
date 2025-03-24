@@ -1,0 +1,23 @@
+{
+  "install": "cd backend && npm install",
+  "start": "cd backend && node server.js",
+  "watch": {
+    "ignore": [
+      "\\.git",
+      "node_modules/**/node_modules"
+    ],
+    "install": {
+      "include": [
+        "^package\\.json$",
+        "^\\.env$"
+      ]
+    },
+    "restart": {
+      "include": [
+        "\\.js$",
+        "\\.json"
+      ]
+    },
+    "throttle": 1000
+  }
+}

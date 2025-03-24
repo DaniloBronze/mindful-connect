@@ -13,7 +13,7 @@ try {
     "type": process.env.FIREBASE_TYPE,
     "project_id": process.env.FIREBASE_PROJECT_ID,
     "private_key_id": process.env.FIREBASE_PRIVATE_KEY_ID,
-    "private_key": process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    "private_key": process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
     "client_email": process.env.FIREBASE_CLIENT_EMAIL,
     "client_id": process.env.FIREBASE_CLIENT_ID,
     "auth_uri": process.env.FIREBASE_AUTH_URI,
@@ -24,7 +24,6 @@ try {
 }
 
 const app = express();
-// Use a porta fornecida pelo Glitch ou 3000 localmente
 const port = process.env.PORT || 3000;
 
 // Inicializa o Firebase Admin
@@ -35,14 +34,23 @@ admin.initializeApp({
 // Obtém uma referência para o Firestore
 const db = admin.firestore();
 
-// Configuração do CORS para permitir requisições da extensão
-app.use(cors({
-  origin: ['chrome-extension://*', 'http://localhost:3000'],
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Configuração do CORS - Permite todas as origens durante desenvolvimento
+app.use(cors());
 
+// Middleware para processar JSON
 app.use(express.json());
+
+// Rota para verificar se o servidor está online
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'online',
+    message: 'Mindful Connect API está funcionando!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Rota OPTIONS para preflight CORS
+app.options('*', cors());
 
 // Middleware para verificar o token de autenticação
 async function verifyToken(req, res, next) {
@@ -77,15 +85,6 @@ async function verifyToken(req, res, next) {
     res.status(401).json({ error: 'Token inválido' });
   }
 }
-
-// Rota para verificar se o servidor está online
-app.get('/', (req, res) => {
-  res.json({ 
-    status: 'online',
-    message: 'Mindful Connect API está funcionando!',
-    timestamp: new Date().toISOString()
-  });
-});
 
 // Rota para rastrear tempo
 app.post('/api/track-time', verifyToken, async (req, res) => {

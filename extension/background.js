@@ -42,7 +42,13 @@ async function updateTimeOnServer(app, seconds) {
       return;
     }
 
-    const response = await fetch('https://seu-projeto.glitch.me/api/track-time', {
+    console.log('Enviando tempo para o servidor:', {
+      app,
+      seconds,
+      userEmail
+    });
+
+    const response = await fetch('https://bow-spring-puma.glitch.me/api/track-time', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,22 +63,23 @@ async function updateTimeOnServer(app, seconds) {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Resposta do servidor:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    
-    // Atualiza o storage local com as horas atuais e a meta
-    const todayStats = (await chrome.storage.local.get(['todayStats'])).todayStats || {};
-    todayStats[app] = {
-      currentHours: data.currentHours,
-      targetHours: data.targetHours
-    };
-    await chrome.storage.local.set({ todayStats });
-    
     console.log('Tempo atualizado com sucesso:', data);
+    
+    return data;
   } catch (error) {
     console.error('Erro ao atualizar tempo:', error);
+    // Não propaga o erro para não quebrar o fluxo da extensão
+    return null;
   }
 }
 

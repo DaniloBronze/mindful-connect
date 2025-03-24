@@ -1,7 +1,7 @@
 {
-  "name": "mindfull-connect-backend",
+  "name": "mindful-connect-backend",
   "version": "1.0.0",
-  "description": "Backend para o Mindful Connect",
+  "description": "Backend for Mindful Connect Chrome Extension",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -9,10 +9,11 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "firebase-admin": "^11.11.1"
+    "firebase-admin": "^11.5.0"
   },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
+  "engines": {
+    "node": "16.x"
   }
 }
