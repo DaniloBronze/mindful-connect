@@ -91,6 +91,105 @@ async function verifyToken(req, res, next) {
   }
 }
 
+// Rota para obter estatísticas
+app.get('/api/stats', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    console.log('Buscando estatísticas para usuário:', userId);
+
+    // Referência para a coleção goals
+    const goalsRef = db.collection('users').doc(userId).collection('goals');
+    const snapshot = await goalsRef.get();
+    
+    // Cria um objeto com as estatísticas
+    const stats = {};
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      stats[data.app] = data.currentHours || 0;
+    });
+
+    console.log('Estatísticas:', stats);
+    res.json(stats);
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas:', error);
+    res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+  }
+});
+
+// Rota para rastrear tempo
+app.post('/api/stats', verifyToken, async (req, res) => {
+  try {
+    const { app: appName, timeSpent } = req.body;
+    const userId = req.user.uid;
+    const seconds = timeSpent;
+
+    console.log(`\nProcessando tempo para ${appName}:`);
+    console.log('- ID:', userId);
+    console.log('- Segundos:', seconds);
+
+    // Referência para a coleção goals
+    const goalsRef = db.collection('users').doc(userId).collection('goals');
+
+    // Busca todos os documentos da coleção goals
+    console.log('Buscando goals...');
+    const snapshot = await goalsRef.get();
+    
+    // Procura o documento que tem o app correspondente
+    let goalDoc = null;
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.app === appName) {
+        goalDoc = { id: doc.id, ...data };
+        console.log('Goal encontrado:', doc.id);
+      }
+    });
+
+    // Se não encontrar o goal, cria um novo
+    if (!goalDoc) {
+      console.log(`Criando novo goal para ${appName}`);
+      const newGoalRef = await goalsRef.add({
+        app: appName,
+        currentHours: 0,
+        targetHours: 2, // valor padrão de 2 horas
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      goalDoc = {
+        id: newGoalRef.id,
+        app: appName,
+        currentHours: 0,
+        targetHours: 2
+      };
+    }
+
+    // Atualiza as horas no documento
+    const newHours = (goalDoc.currentHours || 0) + (seconds / 3600);
+    console.log(`Atualizando horas de ${goalDoc.currentHours} para ${newHours}`);
+    
+    await goalsRef.doc(goalDoc.id).update({
+      currentHours: newHours,
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Obtém os dados atualizados
+    const updatedDoc = await goalsRef.doc(goalDoc.id).get();
+    const updatedData = updatedDoc.data();
+
+    console.log(`Sucesso! ${appName}: ${updatedData.currentHours.toFixed(2)} horas`);
+    
+    res.json({ 
+      success: true, 
+      currentHours: updatedData.currentHours,
+      targetHours: updatedData.targetHours 
+    });
+  } catch (error) {
+    console.error('Erro ao salvar tempo:', error);
+    res.status(500).json({ 
+      error: 'Erro ao salvar tempo',
+      details: error.message
+    });
+  }
+});
+
 // Rota para rastrear tempo
 app.post('/api/track-time', verifyToken, async (req, res) => {
   try {
