@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
+const fetch = require('node-fetch');
 
 // Inicializa o Firebase Admin
 let serviceAccount;
