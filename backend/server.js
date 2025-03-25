@@ -80,11 +80,57 @@ async function verifyToken(req, res, next) {
       return;
     }
 
-    console.log('Verificando token Firebase...');
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    console.log('Token verificado para:', decodedToken.email);
-    req.user = decodedToken;
-    next();
+    // Tenta verificar como token do Firebase
+    try {
+      console.log('Verificando token Firebase...');
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      console.log('Token Firebase verificado para:', decodedToken.email);
+      req.user = decodedToken;
+      next();
+      return;
+    } catch (firebaseError) {
+      console.log('Não é um token Firebase válido, tentando como token Google...');
+      
+      // Se não for um token Firebase, tenta verificar como token do Google
+      try {
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Google API error: ${response.status}`);
+        }
+        
+        const userInfo = await response.json();
+        console.log('Token Google verificado para:', userInfo.email);
+        
+        // Busca ou cria o usuário no Firebase
+        let userRecord;
+        try {
+          userRecord = await admin.auth().getUserByEmail(userInfo.email);
+        } catch (e) {
+          // Se o usuário não existe, cria um novo
+          userRecord = await admin.auth().createUser({
+            email: userInfo.email,
+            displayName: userInfo.name,
+            photoURL: userInfo.picture
+          });
+        }
+        
+        req.user = {
+          uid: userRecord.uid,
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture
+        };
+        
+        next();
+        return;
+      } catch (googleError) {
+        console.error('Erro ao verificar token Google:', googleError);
+        throw new Error('Token inválido: não é um token Firebase nem Google válido');
+      }
+    }
   } catch (error) {
     console.error('Erro ao verificar token:', error);
     res.status(401).json({ error: 'Token inválido' });
