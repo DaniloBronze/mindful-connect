@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "mindfull-993d8"
+  },
+  "targets": {
+    "mindfull-993d8": {
+      "hosting": {
+        "app": [
+          "mindfull-993d8"
+        ],
+        "download": [
+          "mindfull-993d8-download"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
