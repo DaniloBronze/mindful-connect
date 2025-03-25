@@ -1,56 +1,139 @@
-// Firebase Auth SDK
-const authInstances = {};
+// Firebase Auth SDK - Using npm modules
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { firebaseConfig } from './firebase-config.js';
 
-// Token mock para testes
-const mockToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjFiYjI2MzY3YWJhYmM0MzExMTdkYjA2ZGFlNjFiZGJkMjVmMjE0ZGQiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiVGVzdCBVc2VyIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FBY0hUdGNqVVNlclRlc3QiLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vbWluZGZ1bGwtOTkzZDgiLCJhdWQiOiJtaW5kZnVsbC05OTNkOCIsImF1dGhfdGltZSI6MTcxMTI0ODQwMCwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZ29vZ2xlLmNvbSI6WyIxMTU5MjQyMzE5OTk5OTk5OTk5OTkiXSwiZW1haWwiOlsidXNlckBleGFtcGxlLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6Imdvb2dsZS5jb20ifSwiaWF0IjoxNzExMjQ4NDAwLCJleHAiOjE3MTEyNTIwMDAsInN1YiI6InRlc3QtdXNlci1pZCJ9.test-signature';
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-export function getAuth(app) {
-  const name = app?.name || '[DEFAULT]';
-  if (authInstances[name]) {
-    return authInstances[name];
-  }
-
-  const auth = {
-    app,
-    currentUser: null,
-    listeners: [],
-    async signInWithPopup(provider) {
+// Function to sign in with Google
+export async function signInWithGoogle() {
+  try {
+    // First, remove any cached tokens
+    const { authToken } = await chrome.storage.local.get('authToken');
+    if (authToken) {
       try {
-        // Simula o processo de login com um token JWT válido
-        const user = {
-          uid: 'test-user-id',
-          email: 'user@example.com',
-          displayName: 'Test User',
-          photoURL: 'https://example.com/photo.jpg',
-          getIdToken: () => Promise.resolve(mockToken)
-        };
-        
-        auth.currentUser = user;
-        auth.listeners.forEach(listener => listener(user));
-        return { user };
-      } catch (error) {
-        console.error('Error in signInWithPopup:', error);
-        throw error;
+        await chrome.identity.removeCachedAuthToken({ token: authToken });
+      } catch (e) {
+        console.log('Error removing cached token:', e);
       }
-    },
-    onAuthStateChanged(callback) {
-      auth.listeners.push(callback);
-      return () => {
-        auth.listeners = auth.listeners.filter(listener => listener !== callback);
+    }
+
+    // Request new token with interactive sign in
+    const token = await new Promise((resolve, reject) => {
+      chrome.identity.getAuthToken({ 
+        interactive: true
+      }, (newToken) => {
+        if (chrome.runtime.lastError) {
+          console.error('Chrome Identity Error:', chrome.runtime.lastError);
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          resolve(newToken);
+        }
+      });
+    });
+
+    // Get user info from Google
+    const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Google API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      throw new Error(`Failed to get user info: ${response.status} - ${errorText}`);
+    }
+
+    const userInfo = await response.json();
+    console.log('User info received:', userInfo);
+
+    // Store user info
+    await chrome.storage.local.set({
+      authToken: token,
+      userEmail: userInfo.email,
+      userName: userInfo.name,
+      userPhoto: userInfo.picture
+    });
+
+    return {
+      email: userInfo.email,
+      displayName: userInfo.name,
+      photoURL: userInfo.picture
+    };
+  } catch (error) {
+    console.error('Error signing in:', error);
+    // Clear any stored data on error
+    await chrome.storage.local.remove(['authToken', 'userEmail', 'userName', 'userPhoto']);
+    throw error;
+  }
+}
+
+// Function to check if user is logged in
+export async function getCurrentUser() {
+  try {
+    const data = await chrome.storage.local.get(['authToken', 'userEmail', 'userName', 'userPhoto']);
+    if (data.authToken && data.userEmail) {
+      // Verify the token is still valid
+      try {
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            'Authorization': `Bearer ${data.authToken}`
+          }
+        });
+        
+        if (!response.ok) {
+          console.log('Token invalid, clearing data');
+          await chrome.storage.local.remove(['authToken', 'userEmail', 'userName', 'userPhoto']);
+          return null;
+        }
+      } catch (e) {
+        console.error('Error verifying token:', e);
+        return null;
+      }
+
+      return {
+        email: data.userEmail,
+        displayName: data.userName,
+        photoURL: data.userPhoto
       };
     }
-  };
-
-  authInstances[name] = auth;
-  return auth;
-}
-
-export class GoogleAuthProvider {
-  constructor() {
-    this.providerId = 'google.com';
+    return null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
   }
 }
 
-export function signInWithPopup(auth, provider) {
-  return auth.signInWithPopup(provider);
+// Function to sign out
+export async function signOut() {
+  try {
+    const { authToken } = await chrome.storage.local.get('authToken');
+    if (authToken) {
+      try {
+        // Remove the token from Chrome's cache
+        await chrome.identity.removeCachedAuthToken({ token: authToken });
+        
+        // Revoke access
+        const response = await fetch(`https://accounts.google.com/o/oauth2/revoke?token=${authToken}`);
+        if (!response.ok) {
+          console.error('Error revoking token:', response.statusText);
+        }
+      } catch (e) {
+        console.error('Error removing token:', e);
+      }
+    }
+    
+    // Clear stored data
+    await chrome.storage.local.remove(['authToken', 'userEmail', 'userName', 'userPhoto']);
+  } catch (error) {
+    console.error('Error signing out:', error);
+    throw error;
+  }
 }

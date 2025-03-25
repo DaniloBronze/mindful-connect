@@ -29,284 +29,120 @@
       color: var(--white);
       padding: 20px;
       border-radius: 0 0 24px 24px;
-      margin-bottom: 20px;
       text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .login-section {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .google-btn {
+      display: inline-flex;
+      align-items: center;
+      background-color: var(--white);
+      color: var(--text-color);
+      border: 1px solid #ddd;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
       box-shadow: var(--shadow);
     }
 
-    .header h2 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 600;
-      letter-spacing: -0.025em;
+    .google-btn:hover {
+      background-color: var(--gray-light);
     }
 
-    .status {
-      font-size: 14px;
-      margin-top: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 12px;
-      border-radius: 12px;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+    .google-btn img {
+      width: 18px;
+      height: 18px;
+      margin-right: 10px;
     }
 
-    .status-label {
-      opacity: 0.8;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .user-section {
+      display: none;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .user-section.visible {
       display: block;
-      margin-bottom: 4px;
     }
 
-    .status-value {
-      font-weight: 500;
+    .logout-btn {
+      background-color: var(--gray-light);
+      color: var(--text-color);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
       font-size: 14px;
+      margin-top: 10px;
     }
 
-    .app-list {
-      padding: 0 16px 16px;
+    .logout-btn:hover {
+      background-color: #E5E7EB;
     }
 
-    .app-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      background: var(--gray-light);
-      border-radius: 12px;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
+    .stats {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: var(--gray-light);
+      border-radius: 8px;
     }
 
-    .app-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      z-index: 1;
-    }
-
-    .app-item:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
-
-    .app-item:hover::before {
-      opacity: 0.05;
-    }
-
-    .app-name, .app-time {
-      position: relative;
-      z-index: 2;
-    }
-
-    .app-icon {
-      width: 24px;
-      height: 24px;
-      margin-right: 12px;
-      vertical-align: middle;
-      border-radius: 6px;
-    }
-
-    .app-name {
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-    }
-
-    .app-time {
-      font-weight: 600;
+    .stats h3 {
+      margin: 0 0 10px 0;
       color: var(--primary-color);
     }
 
-    .login-container {
-      text-align: center;
-      padding: 32px 20px;
-      background: var(--white);
-      border-radius: 24px;
-      margin: 16px;
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+      padding: 5px 0;
+      border-bottom: 1px solid #ddd;
     }
 
-    .login-container h2 {
-      margin: 0 0 8px;
-      font-size: 24px;
-      font-weight: 600;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .login-container p {
-      color: #6B7280;
-      margin-bottom: 24px;
-    }
-
-    .login-button {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: var(--white);
-      border: none;
-      padding: 12px 24px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 500;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: var(--shadow);
-    }
-
-    .login-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
-    }
-
-    #tracking-container {
-      display: none;
-    }
-
-    #login-container {
-      display: block;
-    }
-
-    /* Progress bar styles */
-    .progress-container {
-      margin-top: 12px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-      height: 4px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .progress-bar {
-      height: 100%;
-      background: var(--white);
-      border-radius: 8px;
-      transition: width 0.3s ease;
-      position: relative;
-    }
-
-    .progress-bar::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.5) 50%,
-        rgba(255, 255, 255, 0) 100%
-      );
-      animation: shimmer 1.5s infinite;
-    }
-
-    @keyframes shimmer {
-      0% {
-        transform: translateX(-100%);
-      }
-      100% {
-        transform: translateX(100%);
-      }
+    .stat-item:last-child {
+      border-bottom: none;
     }
   </style>
 </head>
 <body>
-  <div id="login-container" class="login-container">
-    <h2>Mindful Connect</h2>
-    <p>Monitore seu tempo nas redes sociais de forma consciente</p>
-    <button id="login-button" class="login-button">
-      <svg style="width:20px;height:20px;margin-right:8px;vertical-align:middle" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.545,12.151L12.545,12.151c0,1.054,0.855,1.909,1.909,1.909h3.536c-0.607,1.972-2.101,3.467-4.26,3.467c-2.624,0-4.747-2.124-4.747-4.747s2.124-4.747,4.747-4.747c1.112,0,2.134,0.374,2.935,1.175l2.255-2.255C17.022,5.057,14.784,4,12.545,4C7.021,4,2.545,8.477,2.545,14s4.476,10,10,10c6.075,0,9.538-4.279,9.538-9.589c0-0.476-0.042-0.938-0.121-1.386h-9.417V12.151z"/>
-      </svg>
+  <div class="header">
+    <h1>Mindful Connect</h1>
+    <p>Monitore seu tempo nas redes sociais</p>
+  </div>
+
+  <div id="loginSection" class="login-section">
+    <button id="loginButton" class="google-btn">
+      <img src="https://www.google.com/favicon.ico" alt="Google">
       Entrar com Google
     </button>
   </div>
 
-  <div id="tracking-container">
-    <div class="header">
-      <h2>Mindful Connect</h2>
-      <div class="status">
-        <span class="status-label">Status:</span>
-        <span class="status-value" id="tracking-status">Inativo</span>
-        <br>
-        <span class="status-label">App atual:</span>
-        <span class="status-value" id="current-app">Nenhum</span>
-        <div class="progress-container">
-          <div class="progress-bar" style="width: 0%"></div>
-        </div>
-      </div>
+  <div id="userSection" class="user-section">
+    <div id="userInfo">
+      <img id="userPhoto" src="" alt="Foto do usuário" style="width: 50px; height: 50px; border-radius: 50%;">
+      <p id="userName"></p>
+      <p id="userEmail"></p>
+      <button id="logoutButton" class="logout-btn">Sair</button>
     </div>
 
-    <div class="app-list">
-      <div class="app-item">
-        <span class="app-name">
-          <img src="https://static.cdninstagram.com/rsrc.php/v4/yI/r/VsNE-OHk_8a.png" class="app-icon" alt="Instagram">
-          Instagram
-        </span>
-        <span id="instagram-time" class="app-time">0min</span>
-      </div>
-      <div class="app-item">
-        <span class="app-name">
-          <img src="https://www.facebook.com/favicon.ico" class="app-icon" alt="Facebook">
-          Facebook
-        </span>
-        <span id="facebook-time" class="app-time">0min</span>
-      </div>
-      <div class="app-item">
-        <span class="app-name">
-          <img src="https://abs.twimg.com/favicons/twitter.3.ico" class="app-icon" alt="Twitter">
-          Twitter
-        </span>
-        <span id="twitter-time" class="app-time">0min</span>
-      </div>
-      <div class="app-item">
-        <span class="app-name">
-          <img src="https://www.youtube.com/s/desktop/e4d15d2c/img/favicon_32x32.png" class="app-icon" alt="YouTube">
-          YouTube
-        </span>
-        <span id="youtube-time" class="app-time">0min</span>
-      </div>
-      <div class="app-item">
-        <span class="app-name">
-          <img src="https://www.tiktok.com/favicon.ico" class="app-icon" alt="TikTok">
-          TikTok
-        </span>
-        <span id="tiktok-time" class="app-time">0min</span>
-      </div>
-      <div class="app-item">
-        <span class="app-name">
-          <img src="https://web.whatsapp.com/favicon-64x64.ico" class="app-icon" alt="WhatsApp">
-          WhatsApp
-        </span>
-        <span id="whatsapp-time" class="app-time">0min</span>
-      </div>
-      <div class="app-item">
-        <span class="app-name">
-          <img src="https://static.licdn.com/aero-v1/sc/h/al2o9zrvru7aqj8e1x2rzsrca" class="app-icon" alt="LinkedIn">
-          LinkedIn
-        </span>
-        <span id="linkedin-time" class="app-time">0min</span>
-      </div>
+    <div class="stats">
+      <h3>Tempo de Uso Hoje</h3>
+      <div id="statsContent"></div>
     </div>
   </div>
 
-  <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
-  <script src="lib/firebase/firebase-app.js" type="module"></script>
-  <script src="lib/firebase/firebase-auth.js" type="module"></script>
-
-  <!-- Your web app's Firebase configuration -->
-  <script src="lib/firebase-config.js" type="module"></script>
-  <script src="popup.js" type="module"></script>
+  <script src="dist/popup.js"></script>
 </body>
 </html>

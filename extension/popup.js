@@ -1,100 +1,104 @@
-import { initializeApp } from './lib/firebase-app.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from './lib/firebase-auth.js';
-import { firebaseConfig } from './lib/firebase-config.js';
+import { signInWithGoogle, signOut, getCurrentUser } from './lib/firebase-auth.js';
 
-// Inicializa o Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   // Elementos do DOM
-  const loginContainer = document.getElementById('login-container');
-  const trackingContainer = document.getElementById('tracking-container');
-  const loginButton = document.getElementById('login-button');
-  const trackingStatus = document.getElementById('tracking-status');
-  const currentApp = document.getElementById('current-app');
+  const loginSection = document.getElementById('loginSection');
+  const userSection = document.getElementById('userSection');
+  const loginButton = document.getElementById('loginButton');
+  const logoutButton = document.getElementById('logoutButton');
+  const userPhoto = document.getElementById('userPhoto');
+  const userName = document.getElementById('userName');
+  const userEmail = document.getElementById('userEmail');
+  const statsContent = document.getElementById('statsContent');
 
   // Função para atualizar a interface com base no status de autenticação
   async function updateUI(user) {
     if (user) {
       // Usuário está logado
-      loginContainer.style.display = 'none';
-      trackingContainer.style.display = 'block';
+      loginSection.style.display = 'none';
+      userSection.style.display = 'block';
       
-      // Salva as informações do usuário
-      try {
-        await chrome.storage.local.set({ 
-          authToken: await user.getIdToken(),
-          userEmail: user.email
-        });
-        console.log('Usuário autenticado:', user.email);
-      } catch (error) {
-        console.error('Erro ao salvar dados:', error);
-      }
+      // Atualiza informações do usuário
+      userPhoto.src = user.photoURL || 'https://www.gravatar.com/avatar/?d=mp';
+      userName.textContent = user.displayName || 'Usuário';
+      userEmail.textContent = user.email;
+      
+      // Carrega as estatísticas do usuário
+      await loadUserStats();
     } else {
       // Usuário não está logado
-      loginContainer.style.display = 'block';
-      trackingContainer.style.display = 'none';
+      loginSection.style.display = 'block';
+      userSection.style.display = 'none';
       
-      // Remove o token de autenticação
-      try {
-        await chrome.storage.local.remove(['authToken', 'userEmail']);
-        console.log('Dados de autenticação removidos');
-      } catch (error) {
-        console.error('Erro ao remover dados:', error);
-      }
+      // Limpa informações do usuário
+      userPhoto.src = '';
+      userName.textContent = '';
+      userEmail.textContent = '';
+      statsContent.innerHTML = '';
     }
   }
 
-  // Login com Google usando Firebase
-  loginButton.addEventListener('click', async () => {
+  // Função para carregar as estatísticas do usuário
+  async function loadUserStats() {
     try {
-      console.log('Iniciando processo de login...');
-      const result = await signInWithPopup(auth, provider);
-      console.log('Login bem sucedido:', result.user.email);
-      await updateUI(result.user);
-    } catch (error) {
-      console.error('Erro detalhado no login:', error.message || error);
-      alert(`Erro ao fazer login: ${error.message || 'Tente novamente mais tarde'}`);
-    }
-  });
+      const { authToken } = await chrome.storage.local.get('authToken');
+      if (!authToken) return;
 
-  // Atualiza os contadores de tempo
-  function updateTimers() {
-    chrome.storage.local.get(['todayStats'], function(result) {
-      const stats = result.todayStats || {};
-      
-      Object.entries(stats).forEach(([app, seconds]) => {
-        const minutes = Math.floor(seconds / 60);
-        const element = document.getElementById(`${app.toLowerCase()}-time`);
-        if (element) {
-          element.textContent = `${minutes}min`;
+      const response = await fetch('https://mewing-bevel-battery.glitch.me/api/stats', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
         }
       });
-    });
-  }
 
-  // Atualiza o status de rastreamento
-  function updateTrackingStatus() {
-    chrome.runtime.sendMessage({ type: 'getStatus' }, function(response) {
-      if (response && trackingStatus) {
-        trackingStatus.textContent = response.active ? 'Ativo' : 'Inativo';
-        if (currentApp) {
-          currentApp.textContent = response.currentApp || 'Nenhum';
-        }
+      if (response.ok) {
+        const stats = await response.json();
+        statsContent.innerHTML = '';
+        
+        // Renderiza as estatísticas
+        Object.entries(stats).forEach(([app, time]) => {
+          // O tempo já vem em horas do servidor
+          const hours = Math.floor(time);
+          const minutes = Math.floor((time - hours) * 60);
+          
+          const statItem = document.createElement('div');
+          statItem.className = 'stat-item';
+          statItem.innerHTML = `
+            <span>${app}</span>
+            <span>${hours}h ${minutes}m</span>
+          `;
+          
+          statsContent.appendChild(statItem);
+        });
       }
-    });
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
+      statsContent.innerHTML = '<p>Erro ao carregar estatísticas</p>';
+    }
   }
 
-  // Observa mudanças no estado de autenticação
-  auth.onAuthStateChanged((user) => {
-    updateUI(user);
+  // Atualiza as estatísticas a cada 10 segundos
+  setInterval(loadUserStats, 10000);
+
+  // Event Listeners
+  loginButton.addEventListener('click', async () => {
+    try {
+      const user = await signInWithGoogle();
+      await updateUI(user);
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+    }
   });
 
-  // Atualiza a interface a cada segundo
-  setInterval(() => {
-    updateTimers();
-    updateTrackingStatus();
-  }, 1000);
+  logoutButton.addEventListener('click', async () => {
+    try {
+      await signOut();
+      await updateUI(null);
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  });
+
+  // Verifica o estado inicial de autenticação
+  const user = await getCurrentUser();
+  await updateUI(user);
 });

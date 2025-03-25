@@ -6,7 +6,8 @@
   "permissions": [
     "tabs",
     "storage",
-    "activeTab"
+    "activeTab",
+    "identity"
   ],
   "host_permissions": [
     "*://*.instagram.com/*",
@@ -16,13 +17,23 @@
     "*://*.whatsapp.com/*",
     "*://*.youtube.com/*",
     "*://*.linkedin.com/*",
-    "https://mindfull-993d8.web.app/*"
+    "https://mindfull-993d8.web.app/*",
+    "https://mewing-bevel-battery.glitch.me/*",
+    "https://www.googleapis.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
+  "oauth2": {
+    "client_id": "1053309620028-v3aslvu2t0123u0892pjp7gbaerjgmu2.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "action": {
     "default_popup": "popup.html"
